@@ -1,0 +1,27 @@
+#!/usr/bin/env bash
+
+#######################################
+# Add new site into apachevhost
+#######################################
+
+#site serve name
+servername=$1
+serveralias=www.$1
+docroot=$2
+
+block="
+<VirtualHost *:80>
+    ServerName $servername
+    ServerAlias $serveralias
+
+    ServerAdmin webmaster@localhost
+    DocumentRoot $docroot
+
+    ErrorLog ${APACHE_LOG_DIR}/error.log
+    CustomLog ${APACHE_LOG_DIR}/access.log combined
+</VirtualHost>
+"
+echo "$block" > "/etc/apache2/sites-available/$servername.conf"
+ln -fs "/etc/apache2/sites-available/$servername.conf" "/etc/apache2/sites-enabled/$servername.conf"
+sudo service apache2 restart
+sudo service php5-fpm restart 

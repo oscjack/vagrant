@@ -108,35 +108,45 @@ class Homestead
       settings["folders"].each do |folder|
         mount_opts = []
 
-        if (folder["type"] == "nfs")
-            mount_opts = folder["mount_opts"] ? folder["mount_opts"] : ['actimeo=1']
+        if (folder["writable"] == "yes")
+            mount_opts = ["dmode=775","fmode=775"]
         end
 
-        config.vm.synced_folder folder["map"], folder["to"], type: folder["type"] ||= nil, mount_options: mount_opts
+        config.vm.synced_folder folder["map"], folder["to"], owner: folder["owner"], group: folder["group"], type: folder["type"] ||= nil, mount_options: mount_opts
       end
     end
 
-    # Install All The Configured Nginx Sites
-    config.vm.provision "shell" do |s|
-        s.path = scriptDir + "/clear-nginx.sh"
-    end
+    # unistall ngnix
+    # config.vm.provision "shell" do |s|
+    #     s.path = scriptDir + "/unistall-nginx.sh"
+    # end
 
+    # install apache2
+    # config.vm.provision "shell" do |s|
+    #     s.path = scriptDir + "/install-apache.sh"
+    # end
+
+
+    # Install All The Configured virutal Sites
+    # config.vm.provision "shell" do |s|
+    #     s.path = scriptDir + "/clear-apache-sites.sh"
+    # end
 
     settings["sites"].each do |site|
-      type = site["type"] ||= "laravel"
+      # type = site["type"] ||= "laravel"
 
-      if (site.has_key?("hhvm") && site["hhvm"])
-        type = "hhvm"
-      end
+      # if (site.has_key?("hhvm") && site["hhvm"])
+      #   type = "hhvm"
+      # end
 
-      if (type == "symfony")
-        type = "symfony2"
-      end
+      # if (type == "symfony")
+      #   type = "symfony2"
+      # end
 
-      config.vm.provision "shell" do |s|
-        s.path = scriptDir + "/serve-#{type}.sh"
-        s.args = [site["map"], site["to"], site["port"] ||= "80", site["ssl"] ||= "443"]
-      end
+      # config.vm.provision "shell" do |s|
+      #   s.path = scriptDir + "/serve-apache-vhosts.sh"
+      #   s.args = [site["map"], site["to"], site["port"] ||= "80", site["ssl"] ||= "443"]
+      # end
 
       # Configure The Cron Schedule
       if (site.has_key?("schedule") && site["schedule"])
@@ -149,19 +159,19 @@ class Homestead
     end
 
     # Configure All Of The Configured Databases
-    if settings.has_key?("databases")
-        settings["databases"].each do |db|
-          config.vm.provision "shell" do |s|
-            s.path = scriptDir + "/create-mysql.sh"
-            s.args = [db]
-          end
+    # if settings.has_key?("databases")
+    #     settings["databases"].each do |db|
+    #       config.vm.provision "shell" do |s|
+    #         s.path = scriptDir + "/create-mysql.sh"
+    #         s.args = [db]
+    #       end
 
-          config.vm.provision "shell" do |s|
-            s.path = scriptDir + "/create-postgres.sh"
-            s.args = [db]
-          end
-        end
-    end
+    #       # config.vm.provision "shell" do |s|
+    #       #   s.path = scriptDir + "/create-postgres.sh"
+    #       #   s.args = [db]
+    #       # end
+    #     end
+    # end
 
     # Configure All Of The Server Environment Variables
     config.vm.provision "shell" do |s|
@@ -187,21 +197,27 @@ class Homestead
     end
 
     # Update Composer On Every Provision
-    config.vm.provision "shell" do |s|
-      s.inline = "/usr/local/bin/composer self-update"
-    end
+    # config.vm.provision "shell" do |s|
+    #   s.inline = "/usr/local/bin/composer self-update"
+    # end
+
+    # install extra tools
+    # config.vm.provision "shell" do |s|
+    #     s.path = scriptDir + "/install-tools.sh"
+    # end
+
 
     # Configure Blackfire.io
-    if settings.has_key?("blackfire")
-      config.vm.provision "shell" do |s|
-        s.path = scriptDir + "/blackfire.sh"
-        s.args = [
-          settings["blackfire"][0]["id"],
-          settings["blackfire"][0]["token"],
-          settings["blackfire"][0]["client-id"],
-          settings["blackfire"][0]["client-token"]
-        ]
-      end
-    end
+    # if settings.has_key?("blackfire")
+    #   config.vm.provision "shell" do |s|
+    #     s.path = scriptDir + "/blackfire.sh"
+    #     s.args = [
+    #       settings["blackfire"][0]["id"],
+    #       settings["blackfire"][0]["token"],
+    #       settings["blackfire"][0]["client-id"],
+    #       settings["blackfire"][0]["client-token"]
+    #     ]
+    #   end
+    # end
   end
 end
